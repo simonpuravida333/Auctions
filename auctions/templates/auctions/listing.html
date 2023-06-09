@@ -1,0 +1,78 @@
+{% extends "auctions/layout.html" %}
+{% block body %}
+
+<div class = "activeListing">
+	<div>
+		<img src="{{ article.imageLink }}">
+	</div>
+	<div class = "subActiveListing">
+		<h4>• {{ article.category }} •</h4>
+		<h2>{{ article.listingName }}</h2> listed by {{ article.owner }}
+		<br><br><br>{{ article.description }}<hr class = "listing">
+		<div class = "price">
+			Time remaining: {{ article.times }}<br>
+			{% if article.startingBid == currentBid %}
+			Starting Bid: {{ article.startingBid }} €
+			{% else %}
+			Highest Bid: {{ currentBid }} €
+			{% endif %}
+			<br>{{ amountOfBids }} Bids.
+		</div>
+	</div>
+	<div class = "subActiveListing">
+		<h4>Comments</h4>
+		{% for comment in comments %}
+			<strong>{{ comment.user }}</strong> wrote: {{ comment.content }}<br>
+		{% endfor %}
+	</div>
+</div>
+<hr>
+<div class = "activeListing">
+	<div class = "bidding">
+		{% if isClosed != None  and request.user == buyer %}
+		<h3 style="margin:20px">Congratulations! You're the buyer of this article.</h3>
+		{% elif isClosed != None and request.user == article.owner  %}
+		<h3 style="margin:20px">Auction closed. You've sold this article to {{buyer.username}}</h3>
+		{% elif isClosed != None and request.user != article.owner and request.user != buyer %}
+		<h3 style="margin:20px">Auction closed. {{buyer.username}} is the highest bidder.</h3> <!-- closed listing may not appear under activeListings, but a user could still look up the url -->
+		{% elif isClosed != None and buyer == None %}
+		<h3 style="margin:20px">Auction closed. There were no bids.</h3>
+		{% else %}
+			{% if request.user.is_anonymous == False and request.user != article.owner %}
+			<form method="post">
+				{% csrf_token %}
+				{{ form }}
+			    <br><input type="submit" name="hitBidding" value="Place your bid!">
+			</form>
+			<ul class="messages">
+				{% for message in messages %}
+				<li class="message">{{ message }}</li>
+				{% endfor %}
+			</ul>
+			<form method="post">
+				{% csrf_token %}
+			    <br><input type="submit" name="onOffWatchlist" id="onOffWatchlist" {% if isWatched == True %} value="Remove from Watchlist" {% else %} value="Add to Watchlist" {% endif %}>
+			</form>	
+			{% elif request.user.is_anonymous == True %}
+			<h5 style="margin:20px">Log in to bid on this article if you want it ;)</h5>
+			{% else %}
+			<form method="post">
+				{% csrf_token %}
+			    <br><input type="submit" name="closeAuction" id="closeAuction" value="Close Auction Now">
+			    <h5 style="margin:20px">This will make the current highest bidder the buyer of your article.</h5>
+			</form>
+			{% endif %}
+		{% endif %}
+	</div>
+	{% if article.isLive == True%}
+	<div class = "comment">
+		<form method="post">
+			{% csrf_token %}
+			{{ commenting }}
+	    	<br><input type="submit" value="Place Comment">
+		</form>
+	</div>
+	{% endif %}
+</div>
+
+{% endblock %}

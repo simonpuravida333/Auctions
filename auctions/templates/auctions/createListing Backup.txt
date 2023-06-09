@@ -1,0 +1,17 @@
+<form action="{% url 'auctions:createListing' %}" method="post">
+	{% csrf_token %}
+	{% for field in form %}
+		{% if field.name == 'startingBid' or field.name == 'isLiveTime' or field.name == 'isLive' %}
+		<div class = "formBottomSection">{{ field }}</div>
+		{% else %}
+    	{{ field }}
+    	{% endif %}
+    {% endfor %}
+        <br><input type="submit" value="Submit">
+</form>
+
+<form action="{% url 'auctions:createListing' %}" method="post">
+	{% csrf_token %}
+	{{ form }}
+    <br><input type="submit" value="Submit">
+</form>
