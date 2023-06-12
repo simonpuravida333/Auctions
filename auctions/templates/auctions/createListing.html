@@ -2,7 +2,7 @@
 
 {% block body %}
 <div class= "create">
-<form action="{% url 'auctions:createListing' %}" method="post" id = "create">
+<form action="{% url 'auctions:createListing' %}" method="post">
 	{% csrf_token %}
 	{{ form }}
     <br><input type="submit" value="Submit">

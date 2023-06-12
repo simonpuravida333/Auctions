@@ -10,26 +10,56 @@
 		<h2>{{ article.listingName }}</h2> listed by {{ article.owner }}
 		<br><br><br>{{ article.description }}<hr class = "listing">
 		<div class = "price">
-			Time remaining: {{ article.times }}<br>
+			<strong style= "color: #ffe066;">Time remaining: </strong>{{ article.times }}<br>
 			{% if article.startingBid == currentBid %}
 			Starting Bid: {{ article.startingBid }} €
 			{% else %}
-			Highest Bid: {{ currentBid }} €
+				{% if thisUserIsBidding == True and request.user == highestBidder %}
+				<strong style="color:#8dffad;">You are the highest Bidder!<br>{{ currentBid }} €
+				{% elif thisUserIsBidding == True and request.user != highestBidder %}
+				<strong style="color:#ffc197;">You have been overbidden!<br>{{ currentBid }} €
+				{% else %}
+					Highest Bid:<strong> {{ currentBid }} €
+				{% endif %}
+				<br>{{ amountOfBids }} {% if amountOfBids > 1%}Bids.{% else %}Bid.{% endif %}</strong>
 			{% endif %}
-			<br>{{ amountOfBids }} Bids.
 		</div>
 	</div>
+</div>
+<hr>
+<div class = "activeListing" style="font-family: 'Gaegu'; font-size: 20px;">
 	<div class = "subActiveListing">
-		<h4>Comments</h4>
+
+		{% if request.user.is_anonymous == False %}
+		<form method="post">
+			{% csrf_token %}
+			{{ addComment }}
+	    	<br><input type="submit" name="addComment" value="Place Comment" style="height:50px; border-radius: 25px; font-weight: 700; background-color: #80ffff; color: black;">
+		</form>
+		{% endif %}
+	</div>
+	<div class = "subActiveListing">
+		<h2><strong>Comments</strong></h2>
 		{% for comment in comments %}
-			<strong>{{ comment.user }}</strong> wrote: {{ comment.content }}<br>
+			<strong>{{ comment.user }}:</strong><br>{{ comment.content }} 
+			<!-- DEBUG -->
+			{{ comment.id }} <td><a href="{{article.id}}/removeComment/{{comment.id}}">delete</a></td><br>
+			<!-- END DEBUG -->
 		{% endfor %}
 	</div>
 </div>
 <hr>
 <div class = "activeListing">
-	<div class = "bidding">
-		{% if isClosed != None  and request.user == buyer %}
+	{% if isClosed == None and request.user != article.owner %}
+	<div class = "subActiveListing">
+		<form method="post">
+		{% csrf_token %}
+	    <br><input type="submit" name="onOffWatchlist" id="onOffWatchlist" {% if isWatched == True %} value="Remove from Watchlist" {% else %}  value="Add to Watchlist" {% endif %} style="font-family: 'Gaegu'; font-size: 20px; height:50px; border-radius: 25px; font-weight: 700; color: black; margin-top:10px;{% if isWatched == True %}background-color: #ffe066;{% else %} background-color: #80ffff;{% endif %}">
+		</form>	
+	</div>
+	{% endif %}
+	<div class = "subActiveListing" style="font-family:'Montserrat';">
+		{% if isClosed != None and request.user == buyer %}
 		<h3 style="margin:20px">Congratulations! You're the buyer of this article.</h3>
 		{% elif isClosed != None and request.user == article.owner  %}
 		<h3 style="margin:20px">Auction closed. You've sold this article to {{buyer.username}}</h3>
@@ -42,37 +72,23 @@
 			<form method="post">
 				{% csrf_token %}
 				{{ form }}
-			    <br><input type="submit" name="hitBidding" value="Place your bid!">
+			    <br><input type="submit" name="hitBidding" value="Place your bid!" style="border-radius:20px;">
 			</form>
 			<ul class="messages">
 				{% for message in messages %}
 				<li class="message">{{ message }}</li>
 				{% endfor %}
 			</ul>
-			<form method="post">
-				{% csrf_token %}
-			    <br><input type="submit" name="onOffWatchlist" id="onOffWatchlist" {% if isWatched == True %} value="Remove from Watchlist" {% else %} value="Add to Watchlist" {% endif %}>
-			</form>	
 			{% elif request.user.is_anonymous == True %}
 			<h5 style="margin:20px">Log in to bid on this article if you want it ;)</h5>
 			{% else %}
 			<form method="post">
 				{% csrf_token %}
-			    <br><input type="submit" name="closeAuction" id="closeAuction" value="Close Auction Now">
+			    <br><input type="submit" name="closeAuction" style="background-color: #f0ad7c;" value="Close Auction Now">
 			    <h5 style="margin:20px">This will make the current highest bidder the buyer of your article.</h5>
 			</form>
 			{% endif %}
 		{% endif %}
 	</div>
-	{% if article.isLive == True%}
-	<div class = "comment">
-		<form method="post">
-			{% csrf_token %}
-			{{ commenting }}
-	    	<br><input type="submit" value="Place Comment">
-		</form>
-	</div>
-	{% endif %}
 </div>
-
 {% endblock %}

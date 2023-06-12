@@ -20,6 +20,7 @@ daysLive = [
     (5,'5 Days'),
     (7,'7 Days'),
     (10,'10 Days'),
+    (365, '365 Days'),
 ]
 
 class ListingTimes(models.Model):
@@ -72,4 +73,4 @@ class AuctionComment(models.Model):
 	content = models.TextField(max_length=4096, blank=True)
 	
 	def __str__(self):
-		return f"{self.user.username}wrote: {self.content}"
+		return f"{self.user.username} wrote: {self.content}"

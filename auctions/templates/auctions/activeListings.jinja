@@ -1,0 +1,51 @@
+{% extends "auctions/layout.jinja" %}
+{% block body %}
+
+	<div class = "searchCategory">
+		<h3 class = "listHeadline" style="letter-spacing: 0.2em;">• {{ listPageName }} •</h3>
+		<form method="post">
+			{% csrf_token %}
+			{{ category }}
+		</form>
+	</div>
+	<hr>
+	{% for article in allListings %}
+	{% set article = article.article %}
+	{% set id = article.id %}
+		<div class = "activeListing">
+			<div class = "activeListingImage"><a href="{{url('auctions:article', article_id=id)}}"><img src="{{ article.imageLink }}" ></a></div>
+			<div class = "description">
+				<h2><a href="{{url('auctions:article', article_id=id)}}">{{ article.listingName }}</a></h2>
+				<h4>• {{ article.category }} •</h4>
+				<br>
+				{% if article.description|length > 100 %}
+					{% set description = article.description|truncate(100,True,'') %}
+					{% set description = description+'...' %}
+					{{description}}
+				{% else %}
+					{{ article.description }}
+				{% endif %}
+				<!-- DEBUG -->
+				<br>ID: {{ article.id }}
+				<br><td><a href="delete/{{ article.id }}">delete</a></td> 
+				<!-- END DEBUG -->
+				<br><br>
+				<div class = "price">
+				{% if article.startingBid == biddingData[id].highestBid %}
+				Starting Bid: {{ article.startingBid }} €
+				{% else %}
+					{% if biddingData[id].thisUserIsBidding == True and request.user == biddingData[id].highestBidder %}
+					<strong style="color:#8dffad;">You are the highest Bidder!<br>{{ biddingData[id].highestBid }} €
+					{% elif biddingData[id].thisUserIsBidding == True and request.user != biddingData[id].highestBidder %}
+					<strong style="color:#ffc197;">You have been overbidden!<br>{{ biddingData[id].highestBid }} €
+					{% else %}
+						Highest Bid:<strong> {{ biddingData[id].highestBid }} €
+					{% endif %}
+					<br>{{biddingData[id].amountOfBids}} {% if biddingData[id].amountOfBids > 1 %} Bids {% else %} Bid {% endif %}</strong>
+				{% endif %}
+				</div>
+			</div>
+		</div><hr>
+	</div>
+	{% endfor %}
+{% endblock %}

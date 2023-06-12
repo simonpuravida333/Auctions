@@ -66,7 +66,6 @@ def register(request):
 
 def createListing(request):
 	form = CreateForm(request.POST)
-	print(f"form is valid?: {form.is_valid()}")
 	if form.is_valid():
 		thisForm = form.save(commit = False)
 		
@@ -104,6 +103,11 @@ def watchlist(request):
 	hasEnded()
 	watchedListings = Watching.objects.filter(user = request.user)
 	return listAuctions(request, watchedListings, "Your Watchlist")
+
+def yourActiveBiddings(request):
+	hasEnded()
+	activeBiddings = Bid.objects.filter(bidder = request.user)
+	return listAuctions(request, activeBiddings, "Your Biddings")
 	
 def acquired(request):
 	hasEnded()
@@ -113,7 +117,7 @@ def acquired(request):
 def yourActiveAuctions(request):
 	hasEnded()
 	activeAuctions = IsLive.objects.filter(isLive=True, seller = request.user)
-	return listAuctions(request, createdByThisUser, "Your Live Auctions")
+	return listAuctions(request, activeAuctions, "Your Live Auctions")
 	
 def closedAuctions(request):
 	hasEnded()
@@ -123,14 +127,19 @@ def closedAuctions(request):
 def listAuctions(request, listOfAuctions, listPageName):
 	chooseCategory = ChooseCategory(request.POST)
 	if chooseCategory.is_valid():
+		biddingData = {}
 		category = chooseCategory.cleaned_data["category"]
 		if category != "All" and category != "": #similar to upper createListing, this is to prevent POST getting sent without information
 			tempList = []
 			for article in listOfAuctions:
 				if article.article.category == category:
 					tempList.append(article)
+					biddingData[article.article.id] = getBiddingData(request.user, article.article)
 			listOfAuctions = tempList
-	return render(request, "auctions/activeListings.html", {"allListings": listOfAuctions, "category":chooseCategory, "listPageName": listPageName})
+		else:
+			for article in listOfAuctions:
+				biddingData[article.article.id] = getBiddingData(request.user, article.article)
+	return render(request, "auctions/activeListings.jinja", {"allListings": listOfAuctions, "category":chooseCategory, "listPageName": listPageName, "biddingData": biddingData})
 	
 def timeToString(endDate):
 	delta = endDate - datetime.now(timezone.utc)
@@ -180,15 +189,8 @@ def article(request, article_id):
 	except (ClosedAuction.DoesNotExist, AttributeError):
 		pass
 	
-	highestBid = article.startingBid	
-	amountOfBids = 0
-	try:
-		allBids = Bid.objects.filter(article=article)
-		highestBid = allBids.last().bid
-		amountOfBids = len(allBids)
-	except (Bid.DoesNotExist, AttributeError):
-		pass
-	
+	biddingData = getBiddingData(request.user, article)
+		
 	if isClosed is None and request.user.is_anonymous is not True:
 		try:
 			findIt = Watching.objects.get(user = request.user, article=article)
@@ -199,12 +201,12 @@ def article(request, article_id):
 		if request.method=='POST' and 'onOffWatchlist' in request.POST:
 			if isWatched:
 				findIt.delete()
-				messages.add_message(request, messages.INFO, 'Removed from Watchlist.')
+				#messages.add_message(request, messages.INFO, 'Removed from Watchlist.')
 				isWatched = False
 			else:
 				watchThis = Watching(user = request.user, article=article)
 				watchThis.save()
-				messages.add_message(request, messages.INFO, 'Added to Watchlist.')
+				#messages.add_message(request, messages.INFO, 'Added to Watchlist.')
 				isWatched = True
 				
 		if request.method=='POST' and 'closeAuction' in request.POST:
@@ -213,9 +215,9 @@ def article(request, article_id):
 			liveArticle.save()
 			allBids = Bid.objects.filter(article=article)
 			buyer = allBids.last().bidder
-			acquired = AcquiredArticle(article=article, user = buyer)
+			acquired = AcquiredArticle(article=article, buyer = buyer)
 			acquired.save()
-			closed = ClosedAuction(article=article, user = article.owner)
+			closed = ClosedAuction(article=article, seller = article.owner)
 			closed.save()
 			try:
 				isWatched = Watching.objects.get(article = article)
@@ -227,49 +229,79 @@ def article(request, article_id):
 		if request.method=='POST' and 'hitBidding' in request.POST:
 			if form.is_valid():
 				bidding = form.cleaned_data["bidding"]
-				if bidding is not None and bidding >= highestBid+1:
+				if bidding is not None and bidding >= biddingData['highestBid']+1:
 					b = Bid(article=article, bidder=request.user, bid = bidding)
 					b.save()
 					allBids = Bid.objects.filter(article=article)
-					highestBid = allBids.last().bid
+					biddingData['highestBid'] = allBids.last().bid
 					# why again calling from the model instead of just highestBid = b.bid?
 					# because of formatting: If the user bids integers like 354 it will update the page to 354 when submitting the bid. But then, when refreshing the page (call from model) it turns to "354.00" as it's stored as decimals, which makes it an unsmooth experience.
 					
-					amountOfBids += 1
+					biddingData['amountOfBids'] += 1
 					
-					messages.add_message(request, messages.INFO, 'You are the highest bidder. Good luck!')
+					#messages.add_message(request, messages.INFO, 'You are the highest bidder. Good luck!')
+					return HttpResponseRedirect('/auctions/article/'+str(article.id))
 				else:
 					messages.add_message(request, messages.ERROR, 'Your bid must be at least 1€ above the current bidding.')
 					
-		commenting = PlaceComment(request.POST)
-		if commenting.is_valid():
-			comment = commenting.save(commit = False)
-			if comment.content != "":
-				comment.user = request.user
-				comment.article = article
-				comment.save()
-		
+		addComment = PlaceComment(request.POST)
+		if request.method=='POST' and 'addComment' in request.POST:
+			if addComment.is_valid():
+				comment = addComment.cleaned_data["comment"]
+				if comment is not None and comment is not "":
+					c = AuctionComment(user=request.user, article=article, content=comment)
+					c.save()
+					return HttpResponseRedirect('/auctions/article/'+str(article.id))
 		context['isWatched'] = isWatched
 		context['form'] = form
-		context['commenting'] = commenting
+		context['addComment'] = addComment
 	
 	comments = None
 	try:
 		comments = AuctionComment.objects.filter(article=article)
 	except (AuctionComment.DoesNotExist, AttributeError):
 		pass
-		
+
 	context['article'] = article
-	context['currentBid'] = highestBid
-	context['amountOfBids'] = amountOfBids
+	context['currentBid'] = biddingData['highestBid']
+	context['highestBidder'] = biddingData['highestBidder']
+	context['thisUserIsBidding'] = biddingData['thisUserIsBidding']
+	context['amountOfBids'] = biddingData['amountOfBids']
 	context['isClosed'] = isClosed
 	context['buyer'] = buyer
 	context['comments'] = comments
-	
 	return render(request, "auctions/listing.html", context)
 
-# FOR DEBUGGING (allows to quickly remove articles)
+def getBiddingData(user, article):
+	
+	biddingData = {
+		"highestBid": article.startingBid,
+		"amountOfBids": 0,
+		"highestBidder": None,
+		"thisUserIsBidding": False,
+	}
+	
+	try:
+		allBids = Bid.objects.filter(article=article)
+		biddingData['highestBid'] = allBids.last().bid
+		biddingData['amountOfBids'] = len(allBids)
+		biddingData['highestBidder'] = allBids.last().bidder
+		if user.is_anonymous is not True:
+			bids = Bid.objects.filter(bidder = user, article=article)
+			if len(bids) > 0:
+				biddingData['thisUserIsBidding'] = True
+	except (Bid.DoesNotExist, AttributeError):
+		pass
+	
+	return biddingData
+
+# FOR DEBUGGING (allows to quickly remove articles and comments)
 def delete(request, id):
   	member = Listing.objects.get(id=id)
   	member.delete()
   	return redirect('auctions:activeListings')
+  
+def removeComment(request, article_id, id):
+  	comment = AuctionComment.objects.get(id=id)
+  	comment.delete()
+  	return HttpResponseRedirect('/auctions/article/'+str(article_id))

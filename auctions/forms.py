@@ -27,7 +27,7 @@ class CreateForm(ModelForm):
 			'imageLink': _('URL Link for an Image (optional):'),
 			#'startingBid': _('Starting Bid'),
 			#'isLiveTime': _('For how many days will the article be live?'),
-			'startingBid': _('Enter the desired starting bid and choose for how many days the auction will be public. Finally, decide whether the article shall go live now.'),
+			'startingBid': _('Enter the desired starting bid and choose for how many days the auction will be public.'),
 			'isLiveTime': _(''),
 		}
 	
@@ -37,21 +37,12 @@ class CreateForm(ModelForm):
 			for field in self.fields.values():
 				field.required = False
 				
-class PlaceComment(ModelForm):
-	class Meta:
-		model = AuctionComment
-		fields = '__all__'
-		exclude = {
-			'user',
-			'article',
-		}
-		labels = {
-			'content': _(''),
-		}
-		widgets = {
-			'content': forms.Textarea(attrs={'id': 'commentField'}),
-		}
-				
+class PlaceComment(forms.Form):
+	comment = forms.CharField(widget=forms.Textarea(attrs={"rows":"2"}), label="")
+	def __init__(self, *args, **kwargs):
+		super(PlaceComment, self).__init__(*args, **kwargs)
+		self.fields['comment'].required = False
+
 class BidOnListing(forms.Form):
 	bidding = forms.DecimalField(max_digits=8, decimal_places=2, label="")
 	def __init__(self, *args, **kwargs):
