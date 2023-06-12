@@ -42,9 +42,9 @@
 		<h2><strong>Comments</strong></h2>
 		{% for comment in comments %}
 			<strong>{{ comment.user }}:</strong><br>{{ comment.content }} 
-			<!-- DEBUG -->
-			{{ comment.id }} <td><a href="{{article.id}}/removeComment/{{comment.id}}">delete</a></td><br>
-			<!-- END DEBUG -->
+			<!-- DEBUG add second layer of curly braces
+			{ comment.id } <td><a href="{article.id}/removeComment/{comment.id}">delete</a></td><br>
+			 END DEBUG -->
 		{% endfor %}
 	</div>
 </div>
@@ -58,7 +58,7 @@
 		</form>	
 	</div>
 	{% endif %}
-	<div class = "subActiveListing" style="font-family:'Montserrat';">
+	<div class = "subActiveListing">
 		{% if isClosed != None and request.user == buyer %}
 		<h3 style="margin:20px">Congratulations! You're the buyer of this article.</h3>
 		{% elif isClosed != None and request.user == article.owner  %}

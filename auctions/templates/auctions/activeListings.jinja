@@ -25,24 +25,25 @@
 				{% else %}
 					{{ article.description }}
 				{% endif %}
-				<!-- DEBUG -->
-				<br>ID: {{ article.id }}
-				<br><td><a href="delete/{{ article.id }}">delete</a></td> 
-				<!-- END DEBUG -->
+				<!-- DEBUG add second layer of curly braces 
+				<br>ID: { article.id }
+				<br><td><a href="delete/{ article.id }">delete</a></td> 
+				END DEBUG -->
 				<br><br>
 				<div class = "price">
 				{% if article.startingBid == biddingData[id].highestBid %}
-				Starting Bid: {{ article.startingBid }} €
+				Starting Bid:<br><strong>{{ article.startingBid }} €
 				{% else %}
 					{% if biddingData[id].thisUserIsBidding == True and request.user == biddingData[id].highestBidder %}
 					<strong style="color:#8dffad;">You are the highest Bidder!<br>{{ biddingData[id].highestBid }} €
 					{% elif biddingData[id].thisUserIsBidding == True and request.user != biddingData[id].highestBidder %}
 					<strong style="color:#ffc197;">You have been overbidden!<br>{{ biddingData[id].highestBid }} €
 					{% else %}
-						Highest Bid:<strong> {{ biddingData[id].highestBid }} €
+						Highest Bid:<br><strong>{{ biddingData[id].highestBid }} €
 					{% endif %}
-					<br>{{biddingData[id].amountOfBids}} {% if biddingData[id].amountOfBids > 1 %} Bids {% else %} Bid {% endif %}</strong>
+					<br>{{biddingData[id].amountOfBids}} {% if biddingData[id].amountOfBids > 1 %} Bids {% else %} Bid {% endif %}
 				{% endif %}
+				</strong>
 				</div>
 			</div>
 		</div><hr>

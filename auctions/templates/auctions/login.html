@@ -2,13 +2,14 @@
 
 {% block body %}
 
+<div class = description>
     <h2>Login</h2>
 
     {% if message %}
         <div>{{ message }}</div>
     {% endif %}
 
-    <form action="{% url 'auctions:login' %}" method="post" class="description">
+    <form action="{% url 'auctions:login' %}" method="post">
         {% csrf_token %}
         <div class="form-group">
             <input autofocus class="form-control" type="text" name="username" placeholder="Username">
@@ -20,5 +21,5 @@
     </form>
 
     Don't have an account? <a href="{% url 'auctions:register' %}">Register here.</a>
-
+</div>
 {% endblock %}
