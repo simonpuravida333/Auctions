@@ -11,7 +11,7 @@
 		<br><br><br>{{ article.description }}<hr class = "listing">
 		<div class = "price">
 			<strong style= "color: #ffe066;">Time remaining: </strong>{{ article.times }}<br>
-			{% if article.startingBid == currentBid %}
+			{% if amountOfBids == 0 %}
 			Starting Bid: {{ article.startingBid }} €
 			{% else %}
 				{% if thisUserIsBidding == True and request.user == highestBidder %}
@@ -26,10 +26,10 @@
 		</div>
 	</div>
 </div>
+{% if request.user.is_anonymous == True and comments|length > 0 or request.user.is_anonymous == False %}
 <hr>
 <div class = "activeListing" style="font-family: 'Gaegu'; font-size: 20px;">
 	<div class = "subActiveListing">
-
 		{% if request.user.is_anonymous == False %}
 		<form method="post">
 			{% csrf_token %}
@@ -41,16 +41,17 @@
 	<div class = "subActiveListing">
 		<h2><strong>Comments</strong></h2>
 		{% for comment in comments %}
-			<strong>{{ comment.user }}:</strong><br>{{ comment.content }} 
+			<strong>{{ comment.user }}:</strong> {{ comment.content }}<br>
 			<!-- DEBUG add second layer of curly braces
 			{ comment.id } <td><a href="{article.id}/removeComment/{comment.id}">delete</a></td><br>
 			 END DEBUG -->
 		{% endfor %}
 	</div>
 </div>
+{% endif %}
 <hr>
 <div class = "activeListing">
-	{% if isClosed == None and request.user != article.owner %}
+	{% if isClosed == None and request.user != article.owner and request.user.is_anonymous == False %}
 	<div class = "subActiveListing">
 		<form method="post">
 		{% csrf_token %}
@@ -80,7 +81,7 @@
 				{% endfor %}
 			</ul>
 			{% elif request.user.is_anonymous == True %}
-			<h5 style="margin:20px">Log in to bid on this article if you want it ;)</h5>
+			<h5 style="margin:20px;">Log in to bid on this article if you want it ;)</h5>
 			{% else %}
 			<form method="post">
 				{% csrf_token %}

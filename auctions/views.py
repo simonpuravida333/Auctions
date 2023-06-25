@@ -229,7 +229,7 @@ def article(request, article_id):
 		if request.method=='POST' and 'hitBidding' in request.POST:
 			if form.is_valid():
 				bidding = form.cleaned_data["bidding"]
-				if bidding is not None and bidding >= biddingData['highestBid']+1:
+				if bidding is not None and (bidding >= biddingData['highestBid']+1 or (article.startingBid == bidding and biddingData['amountOfBids'] == 0)):
 					b = Bid(article=article, bidder=request.user, bid = bidding)
 					b.save()
 					allBids = Bid.objects.filter(article=article)
