@@ -107,6 +107,12 @@ def watchlist(request):
 def yourActiveBiddings(request):
 	hasEnded()
 	activeBiddings = Bid.objects.filter(bidder = request.user)
+	setArticles = set()
+	for bids in activeBiddings:
+		setArticles.add(bids.article)
+	activeBiddings = []
+	for article in setArticles:
+		activeBiddings.append(Bid.objects.filter(article = article, bidder = request.user).last())
 	return listAuctions(request, activeBiddings, "Your Biddings")
 	
 def acquired(request):
