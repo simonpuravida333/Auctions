@@ -254,7 +254,7 @@ def article(request, article_id):
 		if request.method=='POST' and 'addComment' in request.POST:
 			if addComment.is_valid():
 				comment = addComment.cleaned_data["comment"]
-				if comment is not None and comment is not "":
+				if comment is not None and comment != "":
 					c = AuctionComment(user=request.user, article=article, content=comment)
 					c.save()
 					return HttpResponseRedirect('/auctions/article/'+str(article.id))
