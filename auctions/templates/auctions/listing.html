@@ -8,7 +8,7 @@
 	<div class = "subActiveListing">
 		<h4>• {{ article.category }} •</h4>
 		<h2>{{ article.listingName }}</h2> listed by {{ article.owner }}
-		<br><br><br>{{ article.description }}<hr class = "listing">
+		<br><br><br>{{ article.description|linebreaks }}<hr class = "listing">
 		<div class = "price">
 			<strong style= "color: #ffe066;">Time remaining: </strong>{{ article.times }}<br>
 			{% if amountOfBids == 0 %}
