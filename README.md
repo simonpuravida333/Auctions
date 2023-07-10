@@ -10,13 +10,8 @@ Go to the root of the folder and enter the command:
 Also you need to install django-jinja!
 https://pypi.org/project/django-jinja/
 
-If you want to use the uploaded DB, these are the users already registerd (second line is password):
+If you want to use the uploaded DB, these are the users already registerd (parentheses contains password):
 
-Lana
-l
-
-Lulu
-l
-
-Reinhold
-r
+Lana (l)
+Lulu (l)
+Reinhold (r)
