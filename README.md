@@ -16,4 +16,4 @@ Lana (l)
 Lulu (l)
 Reinhold (r)
 
-... but you're free to download and wipe the DB.
+... of course you can wipe the DB (in your own repository download) and set up your own user traffic.
