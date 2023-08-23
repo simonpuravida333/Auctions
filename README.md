@@ -7,6 +7,7 @@ Go to the root of the folder and enter the command:
 Also you need to install django-jinja!
 https://pypi.org/project/django-jinja/
 
+### add '/auctions' to your local server address
 ### And you're good to go :)
 
 If you want to use the uploaded DB for a quick view, these are the users already registerd (parentheses contains password):
