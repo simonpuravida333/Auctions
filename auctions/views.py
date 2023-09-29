@@ -276,6 +276,7 @@ def article(request, article_id):
 	context['isClosed'] = isClosed
 	context['buyer'] = buyer
 	context['comments'] = comments
+	print(context)
 	return render(request, "auctions/listing.html", context)
 
 def getBiddingData(user, article):
@@ -311,3 +312,31 @@ def removeComment(request, article_id, id):
   	comment = AuctionComment.objects.get(id=id)
   	comment.delete()
   	return HttpResponseRedirect('/auctions/article/'+str(article_id))
+  	
+def showDatabase():
+	users = User.objects.all()
+	listings	= Listing.objects.all()
+	isLives	= IsLive.objects.all()
+	watchings = Watching.objects.all()
+	acquiredArticles	= AcquiredArticle.objects.all()
+	closedArticles = ClosedAuction.objects.all()
+	bids = Bid.objects.all()
+	auctionComments = AuctionComment.objects.all()
+	
+	for a in listings:
+		print(a)
+	for a in isLives:
+		print(a)
+	for a in watchings:
+		print(a)
+	for a in acquiredArticles:
+		print(a)
+	for a in closedArticles:
+		print(a)
+	for a in bids:
+		print(a)
+	for a in auctionComments:
+		print(a)
+		print(a.id)
+
+showDatabase()

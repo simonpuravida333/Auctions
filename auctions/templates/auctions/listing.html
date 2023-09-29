@@ -10,7 +10,11 @@
 		<h2>{{ article.listingName }}</h2> listed by {{ article.owner }}
 		<br><br><br>{{ article.description|linebreaks }}<hr class = "listing">
 		<div class = "price">
+			{% if isClosed == True %}
+			<strong style= "color: #ffe066;">The auction has closed.</strong><br>
+			{% else %}
 			<strong style= "color: #ffe066;">Time remaining: </strong>{{ article.times }}<br>
+			{% endif %}
 			{% if amountOfBids == 0 %}
 			Starting Bid: {{ article.startingBid }} €
 			{% else %}
@@ -29,15 +33,15 @@
 {% if request.user.is_anonymous == True and comments|length > 0 or request.user.is_anonymous == False %}
 <hr>
 <div class = "activeListing" style="font-family: 'Gaegu'; font-size: 20px;">
+	{% if request.user.is_anonymous == False and isClosed == None %}
 	<div class = "subActiveListing">
-		{% if request.user.is_anonymous == False %}
 		<form method="post">
 			{% csrf_token %}
 			{{ addComment }}
 	    	<br><input type="submit" name="addComment" value="Place Comment" style="height:50px; border-radius: 25px; font-weight: 700; background-color: #80ffff; color: black;">
 		</form>
-		{% endif %}
 	</div>
+	{% endif %}
 	<div class = "subActiveListing">
 		<h2><strong>Comments</strong></h2>
 		{% for comment in comments %}
@@ -62,10 +66,12 @@
 	<div class = "subActiveListing">
 		{% if isClosed != None and request.user == buyer %}
 		<h3 style="margin:20px">Congratulations! You're the buyer of this article.</h3>
-		{% elif isClosed != None and request.user == article.owner  %}
+		{% elif isClosed != None and request.user == article.owner and buyer != None %}
 		<h3 style="margin:20px">Auction closed. You've sold this article to {{buyer.username}}</h3>
-		{% elif isClosed != None and request.user != article.owner and request.user != buyer %}
+		{% elif isClosed != None and request.user != article.owner and request.user != buyer and buyer != None %}
 		<h3 style="margin:20px">Auction closed. {{buyer.username}} is the highest bidder.</h3> <!-- closed listing may not appear under activeListings, but a user could still look up the url -->
+		{% elif isClosed != None and buyer == None %}
+		<h3 style="margin:20px">Auction closed. There were no bids.</h3>
 		{% elif isClosed != None and buyer == None %}
 		<h3 style="margin:20px">Auction closed. There were no bids.</h3>
 		{% else %}

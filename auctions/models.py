@@ -50,7 +50,7 @@ class IsLive(models.Model):
 	seller = models.ForeignKey(User, on_delete=models.CASCADE, related_name="sellerLiveAuction")
 	isLive = models.BooleanField()
 	
-class Watching(models.Model): # association table
+class Watching(models.Model):
 	user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="watchers")
 	article = models.ForeignKey(Listing, on_delete=models.CASCADE, related_name="watchedArticle")
 	

@@ -31,7 +31,13 @@
 				END DEBUG -->
 				<br><br>
 				<div class = "price">
-				{% if article.startingBid == biddingData[id].highestBid %}
+				{% if article.startingBid == biddingData[id].highestBid and biddingData[id].amountOfBids == 1 %}
+					{% if request.user == biddingData[id].highestBidder %}
+					<strong style="color:#8dffad;">You are the highest Bidder!<br>{{ biddingData[id].highestBid }} € (Starting Bid)
+					{% else %}
+					Highest Bid:<br><strong>{{ biddingData[id].highestBid }} €<br>1 Bid
+					{% endif %}
+				{% elif article.startingBid == biddingData[id].highestBid %}
 				Starting Bid:<br><strong>{{ article.startingBid }} €
 				{% else %}
 					{% if biddingData[id].thisUserIsBidding == True and request.user == biddingData[id].highestBidder %}
