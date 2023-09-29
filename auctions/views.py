@@ -302,7 +302,7 @@ def getBiddingData(user, article):
 	
 	return biddingData
 
-# FOR DEBUGGING (allows to quickly remove articles and comments)
+# FOR DEBUGGING (allows to quickly remove articles and comments > uncomment sections in corresponding templates)
 def delete(request, id):
   	member = Listing.objects.get(id=id)
   	member.delete()
@@ -336,7 +336,7 @@ def showDatabase():
 	for a in bids:
 		print(a)
 	for a in auctionComments:
-		print(a)
+		#print(a)
 		print(a.id)
 
-showDatabase()
+#showDatabase()
