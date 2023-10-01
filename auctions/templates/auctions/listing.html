@@ -33,7 +33,7 @@
 {% if request.user.is_anonymous == True and comments|length > 0 or request.user.is_anonymous == False %}
 <hr>
 <div class = "activeListing" style="font-family: 'Gaegu'; font-size: 20px;">
-	{% if request.user.is_anonymous == False and isClosed == None %}
+	{% if request.user.is_anonymous == False and isClosed == False %}
 	<div class = "subActiveListing">
 		<form method="post">
 			{% csrf_token %}
@@ -55,7 +55,7 @@
 {% endif %}
 <hr>
 <div class = "activeListing">
-	{% if isClosed == None and request.user != article.owner and request.user.is_anonymous == False %}
+	{% if isClosed == False and request.user != article.owner and request.user.is_anonymous == False %}
 	<div class = "subActiveListing">
 		<form method="post">
 		{% csrf_token %}
@@ -64,15 +64,15 @@
 	</div>
 	{% endif %}
 	<div class = "subActiveListing">
-		{% if isClosed != None and request.user == buyer %}
+		{% if isClosed == True and request.user == buyer %}
 		<h3 style="margin:20px">Congratulations! You're the buyer of this article.</h3>
-		{% elif isClosed != None and request.user == article.owner and buyer != None %}
+		{% elif isClosed == True and request.user == article.owner and buyer != None %}
 		<h3 style="margin:20px">Auction closed. You've sold this article to {{buyer.username}}</h3>
-		{% elif isClosed != None and request.user != article.owner and request.user != buyer and buyer != None %}
+		{% elif isClosed == True and request.user != article.owner and request.user != buyer and buyer != None %}
 		<h3 style="margin:20px">Auction closed. {{buyer.username}} is the highest bidder.</h3> <!-- closed listing may not appear under activeListings, but a user could still look up the url -->
-		{% elif isClosed != None and buyer == None %}
+		{% elif isClosed == True and buyer == None %}
 		<h3 style="margin:20px">Auction closed. There were no bids.</h3>
-		{% elif isClosed != None and buyer == None %}
+		{% elif isClosed == True and buyer == None %}
 		<h3 style="margin:20px">Auction closed. There were no bids.</h3>
 		{% else %}
 			{% if request.user.is_anonymous == False and request.user != article.owner %}

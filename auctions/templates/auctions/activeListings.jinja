@@ -2,7 +2,7 @@
 {% block body %}
 
 	<div class = "searchCategory">
-		<h3 class = "listHeadline" style="letter-spacing: 0.2em;">• {{ listPageName }} •</h3>
+		<h3 style="letter-spacing: 0.2em;">• {{ listPageName }} •</h3>
 		<form method="post">
 			{% csrf_token %}
 			{{ category }}
@@ -31,6 +31,9 @@
 				END DEBUG -->
 				<br><br>
 				<div class = "price">
+				{% if biddingData[id].isClosed == True %}
+				<strong style= "color: #ffe066;">The auction has closed.</strong><br>
+				{% endif %}
 				{% if article.startingBid == biddingData[id].highestBid and biddingData[id].amountOfBids == 1 %}
 					{% if request.user == biddingData[id].highestBidder %}
 					<strong style="color:#8dffad;">You are the highest Bidder!<br>{{ biddingData[id].highestBid }} € (Starting Bid)

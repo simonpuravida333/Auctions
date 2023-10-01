@@ -112,7 +112,13 @@ def yourActiveBiddings(request):
 		setArticles.add(bids.article)
 	activeBiddings = []
 	for article in setArticles:
+		try:
+			closedOne = ClosedAuction.objects.get(article = article)
+			continue
+		except (ClosedAuction.DoesNotExist, AttributeError):
+			pass
 		activeBiddings.append(Bid.objects.filter(article = article, bidder = request.user).last())
+	
 	return listAuctions(request, activeBiddings, "Your Biddings")
 	
 def acquired(request):
@@ -155,25 +161,29 @@ def hasEnded():
 	allListings = IsLive.objects.filter(isLive = True)
 	for isLiveObject in allListings:
 		if str(isLiveObject.article.times) == "The auction has ended.":
-			isLiveObject.isLive = False
-			isLiveObject.save()
-			
-			closed = ClosedAuction(article=isLiveObject.article, seller=isLiveObject.article.owner)
-			closed.save()
-			
-			try:
-				isWatched = Watching.objects.get(article = isLiveObject.article)
-				isWatched.delete()
-			except (Watching.DoesNotExist, AttributeError):
-				pass
-			
-			try:
-				allBids = Bid.objects.filter(article=isLiveObject.article)
-				highestBid = allBids.last()
-				buyer = AcquiredArticle(article=isLiveObject.article, buyer = highestBid.bidder)
-				buyer.save()
-			except (Bid.DoesNotExist, AttributeError):
-				pass
+			closeAuction(isLiveObject)
+				
+def closeAuction(isLiveObject):
+	isLiveObject.isLive = False
+	isLiveObject.save()
+	
+	closed = ClosedAuction(article=isLiveObject.article, seller=isLiveObject.article.owner)
+	closed.save()
+	
+	try:
+		allWatching = Watching.objects.filter(article = isLiveObject.article)
+		for watching in allWatching:
+			watching.delete()
+	except (Watching.DoesNotExist, AttributeError):
+		pass
+					
+	try:
+		allBids = Bid.objects.filter(article=isLiveObject.article)
+		highestBid = allBids.last()
+		buyer = AcquiredArticle(article=isLiveObject.article, buyer = highestBid.bidder)
+		buyer.save()
+	except (Bid.DoesNotExist, AttributeError):
+		pass
 	
 def article(request, article_id):
 	article = Listing.objects.get(id=article_id)
@@ -183,27 +193,23 @@ def article(request, article_id):
 	onItemList = []
 	hasEnded() #Usually the check would happen before activeListings, but it's possible that after an auction has ended, the article page is called before a listing-list page.
 	
-	isClosed = None
+	biddingData = getBiddingData(request.user, article)
+	
 	buyer = None
-	try:
-		isClosed = ClosedAuction.objects.get(article = article)
+	if biddingData['isClosed'] is True:
 		try:
 			isAcquired = AcquiredArticle.objects.get(article = article)
 			buyer = isAcquired.buyer
 		except (AcquiredArticle.DoesNotExist, AttributeError):
 			pass
-	except (ClosedAuction.DoesNotExist, AttributeError):
-		pass
-	
-	biddingData = getBiddingData(request.user, article)
 		
-	if isClosed is None and request.user.is_anonymous is not True:
+	if biddingData['isClosed'] is False and request.user.is_anonymous is not True:
 		try:
 			findIt = Watching.objects.get(user = request.user, article=article)
 			isWatched = True
 		except Watching.DoesNotExist:
 			findIt = None
-		
+
 		if request.method=='POST' and 'onOffWatchlist' in request.POST:
 			if isWatched:
 				findIt.delete()
@@ -217,19 +223,8 @@ def article(request, article_id):
 				
 		if request.method=='POST' and 'closeAuction' in request.POST:
 			liveArticle = IsLive.objects.get(article=article)
-			liveArticle.isLive = False
-			liveArticle.save()
-			allBids = Bid.objects.filter(article=article)
-			buyer = allBids.last().bidder
-			acquired = AcquiredArticle(article=article, buyer = buyer)
-			acquired.save()
-			closed = ClosedAuction(article=article, seller = article.owner)
-			closed.save()
-			try:
-				isWatched = Watching.objects.get(article = article)
-				isWatched.delete()
-			except (Watching.DoesNotExist, AttributeError):
-				pass
+			closeAuction(liveArticle)
+			return HttpResponseRedirect('/auctions/article/'+str(article.id))
 			
 		form = BidOnListing(request.POST)
 		if request.method=='POST' and 'hitBidding' in request.POST:
@@ -273,19 +268,19 @@ def article(request, article_id):
 	context['highestBidder'] = biddingData['highestBidder']
 	context['thisUserIsBidding'] = biddingData['thisUserIsBidding']
 	context['amountOfBids'] = biddingData['amountOfBids']
-	context['isClosed'] = isClosed
+	context['isClosed'] = biddingData['isClosed']
 	context['buyer'] = buyer
 	context['comments'] = comments
-	print(context)
 	return render(request, "auctions/listing.html", context)
 
 def getBiddingData(user, article):
 	
 	biddingData = {
-		"highestBid": article.startingBid,
-		"amountOfBids": 0,
-		"highestBidder": None,
-		"thisUserIsBidding": False,
+		'highestBid': article.startingBid,
+		'amountOfBids': 0,
+		'highestBidder': None,
+		'thisUserIsBidding': False,
+		'isClosed': False,
 	}
 	
 	try:
@@ -298,6 +293,12 @@ def getBiddingData(user, article):
 			if len(bids) > 0:
 				biddingData['thisUserIsBidding'] = True
 	except (Bid.DoesNotExist, AttributeError):
+		pass
+		
+	try:
+		isClosed = ClosedAuction.objects.get(article = article)
+		biddingData['isClosed'] = True
+	except (ClosedAuction.DoesNotExist, AttributeError):
 		pass
 	
 	return biddingData
