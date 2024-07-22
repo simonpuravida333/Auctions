@@ -1,11 +1,12 @@
 # Auctions
 
 To run it, you need python and Django.
+Also you need to install django-jinja!
+https://pypi.org/project/django-jinja/
+
 Go to the root of the folder and enter the command:
 
 ### python manage.py runserver
-Also you need to install django-jinja!
-https://pypi.org/project/django-jinja/
 
 ### add '/auctions' to your local server address
 ### And you're good to go :)
